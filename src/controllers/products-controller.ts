@@ -1,6 +1,7 @@
 import { NextFunction, Request, Response } from "express"
+import { AppError } from "@/utils/AppError";
 
-export class ProductController {
+class ProductController {
     async index(request: Request, response: Response, next: NextFunction) {
       try {
          response.json({ message: "ok"});
@@ -11,4 +12,4 @@ export class ProductController {
     }
 }
 
-//export { ProductController }
+export { ProductController }
