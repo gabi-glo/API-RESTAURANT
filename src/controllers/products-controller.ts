@@ -5,8 +5,15 @@ import { z} from "zod"
 class ProductController {
     async index(request: Request, response: Response, next: NextFunction) {
       try {
-         response.json({ message: "ok"});
-         return;
+        const { name } = request.query
+        const products = await knex<ProductRepository>("products")
+        .select()
+        .whereLike("name", `%${name ?? "" }%`)
+        .orderBy("name")
+        
+
+
+         return response.json(products)
       }catch (error) {
         next(error) ; 
       }
@@ -22,7 +29,7 @@ class ProductController {
 
         await knex<ProductRepository>("products").insert({ name, price })
 
-        return response.status(201).json()
+        return response.status(201).json({ name, price })
       } catch (error) {
         next(error)
       }
