@@ -1,5 +1,6 @@
 import { NextFunction, Request, Response } from "express"
 import { knex } from "@/database/knex"
+import { AppError } from "@/utils/AppError"
 import { z} from "zod"
 
 class ProductController {
@@ -50,6 +51,15 @@ class ProductController {
         })
 
         const { name, price } = bodySchema.parse(request.body)
+        const product =  await knex<ProductRepository>("products")
+        .select()
+        .where({ id })
+        .first()
+
+        if(!product) {
+          throw new AppError("product not found")
+        }
+
         await knex<ProductRepository>("products")
         .update({ name, price, updated_at: knex.fn.now() })
         .where({ id })
@@ -57,6 +67,31 @@ class ProductController {
        return response.json()
       } catch (error) {
          next(error)
+      }
+    }
+
+    async remove(request: Request, response: Response, next: NextFunction) {
+      try {
+          const id = z
+        .string()
+        .transform((value) => Number(value))
+        .refine((value) => !isNaN(value), {message: "id must be a number"})
+        .parse(request.params.id)
+
+        const product = await knex<ProductRepository>("products")
+        .select()
+        .where({ id })
+        .first()
+
+        if(!product) {
+          throw new AppError("Product not found")
+        }
+
+        await knex<ProductRepository>("products").delete().where({ id })
+
+        return response.json()
+      } catch (error) {
+        next(error)
       }
     }
 }
